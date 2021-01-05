@@ -2,236 +2,273 @@
 #  include <config.h>
 #endif
 
-
-
+#include <gtk/gtk.h>
+#include <string.h>
 #include "callbacks.h"
 #include "interface.h"
 #include "support.h"
-#include "ouvrier.h"
-char id[30],idrech[30];
-GtkWidget *windowouvrier;
-int x=1;
+#include "capteur.h"
 
+capteur selected_capteur;
+capterHist selected_capteurhist;
+GtkWidget *COWindowHome;
+  GtkWidget *COWindowAjout;
+GtkWidget *COlabelTypeAjout;
 
-void
-on_DBbuttonrechercher_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
-{
-ouvrier o;
-GtkWidget *windowouvrier;
-GtkWidget *DBentrycin;
-GtkWidget *DBtreeview;
-FILE*f;
-FILE*f2;
-
-
-windowouvrier=lookup_widget(button,"windowouvrier");
-DBentrycin=lookup_widget(button,"DBentrycin");
-strcpy(idrech,gtk_entry_get_text(GTK_ENTRY(DBentrycin)));
-f=fopen("ouvrier.bin","rb");
-
- if(f!=NULL)
- {
-  while(fread(&o,sizeof(ouvrier),1,f))
-     {
-       f2=fopen("DBrecherche.bin","ab+");
-       if  (f2!=NULL)
-   {  
-     
-     if ((strcmp(o.cin,idrech)==0))
-     { 
-     fwrite(&o,sizeof(ouvrier),1,f2);
-     }
-   
-     DBtreeview=lookup_widget(windowouvrier,"DBtreeview");
-     DBrecherche(DBtreeview);
-    
-        fclose(f2);
-    }
-
- }
- fclose(f);
-}
-remove("DBrecherche.bin");
-}
 
 
 void
-on_DBtreeview_row_activated            (GtkTreeView     *DBtreeview,
-                                        GtkTreePath     *path,
-                                        GtkTreeViewColumn *column,
+on_button10_clicked                    (GtkButton       *button,
                                         gpointer         user_data)
 {
-GtkTreeIter iter;
-	gchar* identifiant;
-gchar *cin;
-        gchar *nom;
-        gchar *prenom;
-
-	GtkTreeModel *Model = gtk_tree_view_get_model(DBtreeview);
-
-		if (gtk_tree_model_get_iter(Model, &iter, path)){
-				gtk_tree_model_get(GTK_LIST_STORE(Model),&iter,1,&identifiant, -1);
-				strcpy(id,identifiant);
-				gtk_tree_model_get (Model,&iter,1,&cin,2,&nom,4,&prenom,-1);//recuperer les information de la ligne selectionneé
-		//remplir les champs de entry
-                gtk_entry_set_text(GTK_ENTRY(lookup_widget(windowouvrier,"DBentrymodifcin")),cin);
-                gtk_entry_set_text(GTK_ENTRY(lookup_widget(windowouvrier,"DBentrymodifnom")),nom);
-                gtk_entry_set_text(GTK_ENTRY(lookup_widget(windowouvrier,"DBentrymodifprenom")),prenom);
-		
-}
-}
-
-
-void
-on_DBbuttonactualiser_clicked          (GtkButton       *button,
-                                        gpointer         user_data)
-{
-GtkWidget *DBtreeview;
-windowouvrier=lookup_widget(button,"windowouvrier");
-DBtreeview=lookup_widget(windowouvrier,"DBtreeview");
-DBaffichage(DBtreeview);
-}
-
-
-void
-on_DBbuttonsupprimer_clicked           (GtkButton       *button,
-                                        gpointer         user_data)
-{
-ouvrier o;
-    GtkWidget *DBtreeview;
-	    windowouvrier=lookup_widget(button,"windowouvrier");
-	    DBtreeview=lookup_widget(windowouvrier,"DBtreeview");
-	    DBsuppression(id,o);
-            DBaffichage(DBtreeview);
-}
-
-
-void
-on_DBbuttonmodifier_clicked            (GtkButton       *button,
-                                        gpointer         user_data)
-{
-  gtk_notebook_next_page(GTK_NOTEBOOK(lookup_widget(windowouvrier,"DBnotebook")));
-                gtk_notebook_next_page(GTK_NOTEBOOK(lookup_widget(windowouvrier,"DBnotebook")));
-}
-
-
-void
-on_DBbuttonajouter_clicked             (GtkButton       *button,
-                                        gpointer         user_data)
-{
-ouvrier o;char Type[30];
-GtkWidget *DBentryajoutcin;
-GtkWidget *DBentryajoutnom;
-GtkWidget *DBentryajoutprenom;
-GtkWidget *DBspinbuttonajoutjour;
-GtkWidget *DBspinbuttonajoutmois;
-GtkWidget *DBspinbuttonajoutannee;
-GtkWidget *DBcomboboxajoutsexe;
-GtkWidget *sortiea;
-
-DBspinbuttonajoutjour=lookup_widget(button, "DBspinbuttonajoutjour");
-DBspinbuttonajoutmois=lookup_widget(button, "DBspinbuttonajoutmois");
-DBspinbuttonajoutannee=lookup_widget(button, "DBspinbuttonajoutannee");
-DBcomboboxajoutsexe=lookup_widget(button, "DBcomboboxajoutsexe");
-DBentryajoutcin=lookup_widget(button,"DBentryajoutcin");
-DBentryajoutnom=lookup_widget(button,"DBentryajoutnom");
-DBentryajoutprenom=lookup_widget(button,"DBentryajoutprenom");
-sortiea=lookup_widget(button, "DBlabelmsgsucc");
-
-strcpy(o.cin,gtk_entry_get_text(GTK_ENTRY(DBentryajoutcin)));
-strcpy(o.nom,gtk_entry_get_text(GTK_ENTRY(DBentryajoutnom)));
-strcpy(o.prenom,gtk_entry_get_text(GTK_ENTRY(DBentryajoutprenom)));
-o.date.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonajoutjour));
-o.date.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonajoutmois));
-o.date.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonajoutannee));
-
-strcpy(Type,gtk_combo_box_get_active_text(GTK_COMBO_BOX(DBcomboboxajoutsexe)));
-strcpy(o.sexe,Type);
-DBajout(o);
-gtk_label_set_text(GTK_LABEL(sortiea),"Ajout effectué avec succès!");
-}
-
-
-void
-on_DBbuttonconfirmermodif_clicked      (GtkButton       *button,
-                                        gpointer         user_data)
-{
-ouvrier o;char Type[30];
-GtkWidget *DBcomboboxmodifsexe;
-GtkWidget *DBentrymodifcin;
-GtkWidget *DBentrymodifnom;
-GtkWidget *DBspinbuttonmodifjour;
-GtkWidget *DBspinbuttonmodifmois;
-GtkWidget *DBspinbuttonmodifannee;
-GtkWidget *DBentrymodifprenom;
-GtkWidget *sortiem;    
-	
-DBspinbuttonmodifjour=lookup_widget(button, "DBspinbuttonmodifjour");
-DBspinbuttonmodifmois=lookup_widget(button, "DBspinbuttonmodifmois");
-DBspinbuttonmodifannee=lookup_widget(button, "DBspinbuttonmodifannee");
-DBcomboboxmodifsexe=lookup_widget(button, "DBcomboboxmodifsexe");
-DBentrymodifcin=lookup_widget(button,"DBentrymodifcin");
-DBentrymodifnom=lookup_widget(button,"DBentrymodifnom");
-DBentrymodifprenom=lookup_widget(button,"DBentrymodifprenom");
-sortiem=lookup_widget(button, "DBlabelmodifreus");
-
-strcpy(o.cin,gtk_entry_get_text(GTK_ENTRY(DBentrymodifcin)));
-strcpy(o.nom,gtk_entry_get_text(GTK_ENTRY(DBentrymodifnom)));
-strcpy(o.prenom,gtk_entry_get_text(GTK_ENTRY(DBentrymodifprenom)));
-o.date.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonmodifjour));
-o.date.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonmodifmois));
-o.date.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(DBspinbuttonmodifannee));
-strcpy(Type,gtk_combo_box_get_active_text(GTK_COMBO_BOX(DBcomboboxmodifsexe)));
-strcpy(o.sexe,Type);
-DBmodification(id,o);
-gtk_label_set_text(GTK_LABEL(sortiem),"Modification effectuée avec succès!");
-}
-void
-on_radiobutton1_toggled                (GtkToggleButton *togglebutton,
-                                        gpointer         user_data)
-{
-if(gtk_toggle_button_get_active(GTK_RADIO_BUTTON(togglebutton))){x=1;}
 
 }
 
 
-void
-on_radiobutton2_toggled                (GtkToggleButton *togglebutton,
-                                        gpointer         user_data)
-{
-if(gtk_toggle_button_get_active(GTK_RADIO_BUTTON(togglebutton))){x=0;}
 
-}
 
 
 void
 on_button1_clicked                     (GtkButton       *button,
                                         gpointer         user_data)
 {
-pointage p;
-GtkWidget *cinn;
-GtkWidget *jourr;
-GtkWidget *moiss;
-GtkWidget *anneee;
-cinn=lookup_widget(button,"entry1");
-jourr=lookup_widget(button, "spinbutton1");
-moiss=lookup_widget(button, "spinbutton2");
-anneee=lookup_widget(button, "spinbutton3");
+
+}
 
 
-strcpy(p.cin,gtk_entry_get_text(GTK_ENTRY(cinn)));
-p.date.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(jourr));
-p.date.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(moiss));
-p.date.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(anneee));
+
+void
+on_CObuttonAjouter_clicked             (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
 
 
-if(x==1)
-{p.present=1;}
 
-else 
-{p.present=0;}
-presence ( p);
+FILE *t=NULL;
+FILE *g=NULL;
+GtkWidget *id,*mq,*tp,*min,*max,*idh,*windowAuth,*hum,*temp;
+capteur C;
+id = lookup_widget (objet_graphique,"COentryIDAjout");
+mq = lookup_widget (objet_graphique,"COentryMarqueAjout");
+//tp = lookup_widget (objet_graphique,"COentryTypeAjout");
+min = lookup_widget (objet_graphique,"COspinbuttonValMinAjout");
+max = lookup_widget (objet_graphique,"COspinbuttonValMaxAjout");
+
+
+strcpy(C.captID,gtk_entry_get_text(GTK_ENTRY(id)));
+strcpy(C.captMarque,gtk_entry_get_text(GTK_ENTRY(mq)));
+
+hum=lookup_widget (objet_graphique,"COradiobuttonHumAjout");
+temp=lookup_widget (objet_graphique,"COradiobuttonTempAjout");
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(hum)))
+{
+strcpy(C.captType,"HUM");
+}
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(temp)))
+{
+strcpy(C.captType,"TEMP");
+}
+
+
+C.captValMin=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(min));
+C.captValMax=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(max));
+
+
+
+
+ajouter_capt(C);
+
+
+
+
+
+}
+
+
+void
+on_CObuttonSupprimer_clicked           (GtkWidget       *button,
+                                        gpointer         user_data)
+{
+ GtkWidget *window1;
+window1 = create_window1 ();
+  gtk_widget_show (window1);
+}
+
+
+void
+on_CObuttonRecherche_clicked           (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowHome;
+GtkWidget *id,*mr;
+id = lookup_widget (objet,"COentryIDRecherche");
+mr = lookup_widget (objet,"COentryMarqueRecherche");
+char IDs[20];
+char Marques[20];
+
+strcpy(IDs,gtk_entry_get_text(GTK_ENTRY(id)));
+strcpy(Marques,gtk_entry_get_text(GTK_ENTRY(mr)));
+
+GtkWidget *COtreeviewAffichage;
+COWindowHome=lookup_widget (objet,"COWindowHome");
+
+
+COtreeviewAffichage=lookup_widget (COWindowHome,"COtreeviewAffichage");
+
+rechercher_capt(IDs,Marques,COtreeviewAffichage);
+
+
+
+
+
+}
+
+
+void
+on_CObuttonAjoutHist_clicked           (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+FILE *f=NULL;
+FILE *t=NULL;
+FILE *g=NULL;
+GtkWidget *jour,*mois,*annee,*val,*id;
+capterHist h;
+
+val = lookup_widget (objet_graphique,"COspinbuttonValAjout");
+jour = lookup_widget (objet_graphique,"COspinbuttonJourAjout");
+mois = lookup_widget (objet_graphique,"COspinbuttonMoisAjout");
+annee = lookup_widget (objet_graphique,"COspinbuttonAnneeAjout");
+id = lookup_widget (objet_graphique,"COcomboboxIDAjout");
+
+
+strcpy(h.captIDhist,gtk_combo_box_get_active_text(GTK_COMBO_BOX(id)));
+
+
+
+
+
+h.captValEnr=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(val));
+h.date_capteur.j=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(jour));
+h.date_capteur.m=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(mois));
+h.date_capteur.a=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(annee));
+
+
+ajouter_capt_hist(h);
+}
+
+
+void
+on_CObuttonDisponible_clicked          (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+capteur C;
+GtkWidget *idh;
+idh = lookup_widget (objet_graphique,"COcomboboxIDAjout");
+FILE *f;
+    f=fopen("capteur.bin","rb") ;
+    if (f !=NULL)
+    {
+
+
+
+    while(fread(&C,sizeof(capteur),1,f)!=0)
+{
+	gtk_combo_box_append_text(GTK_COMBO_BOX(idh),_(C.captID));
+
+}
+
+}
+}
+
+
+void
+on_CObuttonModif_clicked               (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowModif;
+
+
+
+
+
+GtkWidget *Add_Fact,*Main_Menue;
+Add_Fact = create_COWindowModif ();
+  gtk_widget_show (Add_Fact);
+
+
+GtkWidget *id,*mq,*min,*max,*tp,*hum,*temp;
+capteur c;
+
+
+id = lookup_widget (Add_Fact,"COentryIDModif");
+mq = lookup_widget (Add_Fact,"COentryMarqueModif");
+
+min = lookup_widget (Add_Fact,"COspinbuttonValMinModif");
+max = lookup_widget (Add_Fact,"COspinbuttonValMaxModif");
+
+
+hum=lookup_widget (Add_Fact,"COradiobuttonHumModif");
+temp=lookup_widget (Add_Fact,"COradiobuttonTempModif");
+
+
+gtk_entry_set_text(id,selected_capteur.captID);
+gtk_entry_set_text(mq,selected_capteur.captMarque);
+
+
+gtk_spin_button_set_value(min,selected_capteur.captValMin);
+gtk_spin_button_set_value(max,selected_capteur.captValMax);
+
+if(strcmp(selected_capteur.captType,"TEMP")==0)
+gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(temp),1);
+if(strcmp(selected_capteur.captType,"HUM")==0)
+gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(hum),1);
+
+}
+
+
+
+
+
+void
+on_CObuttonConfirmModif_clicked        (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+
+capteur C;
+
+GtkWidget *id,*mq,*tp,*min,*max,*idh,*COWindowHome,*hum,*temp;
+
+id = lookup_widget (objet_graphique,"COentryIDModif");
+mq = lookup_widget (objet_graphique,"COentryMarqueModif");
+
+min = lookup_widget (objet_graphique,"COspinbuttonValMinModif");
+max = lookup_widget (objet_graphique,"COspinbuttonValMaxModif");
+
+
+strcpy(C.captID,gtk_entry_get_text(GTK_ENTRY(id)));
+strcpy(C.captMarque,gtk_entry_get_text(GTK_ENTRY(mq)));
+
+hum=lookup_widget (objet_graphique,"COradiobuttonHumModif");
+temp=lookup_widget (objet_graphique,"COradiobuttonTempModif");
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(hum)))
+{
+strcpy(C.captType,"HUM");
+}
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(temp)))
+{
+strcpy(C.captType,"TEMP");
+}
+
+C.captValMin=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(min));
+C.captValMax=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(max));
+
+
+
+
+supprimer_capt(C);
+ajouter_capt(C);
+
+
 
 
 }
@@ -239,55 +276,270 @@ presence ( p);
 
 
 void
-on_button2_clicked                     (GtkButton       *button,
+on_CObuttonSupprimerHist_clicked       (GtkWidget       *button,
                                         gpointer         user_data)
 {
-GtkWidget *mois;
-GtkWidget *annee;
-GtkWidget *sortiem;
-GtkWidget *ta;
-GtkWidget *pourcent ;
-int mm;
-int aa;
-pointage p;
-int tauxpresence=0;
-char tauxtxt[200];
-double absence;
-double i=0;
-float tauxabsence;
-FILE *f=NULL;
-mois=lookup_widget(button, "spinbutton4");
-annee=lookup_widget(button, "spinbutton5");
-mm=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(mois));
-aa=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(annee));
-sortiem=lookup_widget(button, "label35");
-ta=lookup_widget(button, "label38");
-pourcent=lookup_widget(button, "label39");
-
-    f=fopen("pointage.txt","r");
-    if(f!=NULL)
-    {
-        while((fscanf(f, "%s %d %d %d %d",p.cin,&p.date.jour,&p.date.mois,&p.date.annee,&p.present)!=EOF))
-
-{
-if((p.date.mois==mm)&&(p.date.annee==aa))
-
-{
-i++;
-tauxpresence=tauxpresence+p.present;
+ GtkWidget *window2;
+window2 = create_window2 ();
+  gtk_widget_show (window2);
 }
+
+
+void
+on_CObuttonModifHist_clicked           (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowModif;
+
+
+
+
+GtkWidget *Add_Fact,*Main_Menue;
+Add_Fact = create_COwindowModifHist ();
+  gtk_widget_show (Add_Fact);
+
+
+GtkWidget *id,*jour,*mois,*annee,*val;
+capterHist h;
+
+
+id = lookup_widget (Add_Fact,"COentryIDModifHist");
+val = lookup_widget (Add_Fact,"COspinbuttonValModif");
+
+jour = lookup_widget (Add_Fact,"COspinbuttonJourMdif");
+mois = lookup_widget (Add_Fact,"COspinbuttonMoisModif");
+annee = lookup_widget (Add_Fact,"COspinbuttonAnneeModif");
+
+
+
+
+gtk_entry_set_text(id,selected_capteurhist.captIDhist);
+
+gtk_spin_button_set_value(val,selected_capteurhist.captValEnr);
+gtk_spin_button_set_value(jour,selected_capteurhist.date_capteur.j);
+gtk_spin_button_set_value(mois,selected_capteurhist.date_capteur.m);
+gtk_spin_button_set_value(annee,selected_capteurhist.date_capteur.a);
 }
+
+
+void
+on_CObuttonAfficheHist_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowHome;
+
+GtkWidget *COtreeviewAffichageHist;
+COWindowHome=lookup_widget (objet,"COWindowHome");
+
+COtreeviewAffichageHist=lookup_widget (COWindowHome,"COtreeviewAffichageHist");
+afficher_capt_hist(COtreeviewAffichageHist);
+
+}
+
+
+void
+on_CObuttonRechercheHist_clicked       (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowHome;
+GtkWidget *id,*mr;
+id = lookup_widget (objet,"COentryIDRechercheHist");
+mr = lookup_widget (objet,"COentryMarqueRechercheHist");
+char IDs[20];
+char Marques[20];
+strcpy(IDs,gtk_entry_get_text(GTK_ENTRY(id)));
+strcpy(Marques,gtk_entry_get_text(GTK_ENTRY(mr)));
+
+GtkWidget *COtreeviewAffichageHist;
+COWindowHome=lookup_widget (objet,"COWindowHome");
+
+
+COtreeviewAffichageHist=lookup_widget (COWindowHome,"COtreeviewAffichageHist");
+
+rechercher_capt_hist(IDs,Marques,COtreeviewAffichageHist);
+}
+
+
+void
+on_COtreeviewAffichageHist_row_activated (GtkTreeView     *treeview,
+                                        GtkTreePath     *path,
+                                        GtkTreeViewColumn *column,
+                                        gpointer         user_data)
+                                        
+{
+gchar *str_datah;
+GtkListStore *list_store;
+list_store=gtk_tree_view_get_model(treeview);
+GtkTreeIter iter;
+if(gtk_tree_model_get_iter(GTK_TREE_MODEL(list_store),&iter,path))
+{
+gtk_tree_model_get(GTK_TREE_MODEL(list_store),&iter,0,&str_datah,-1);
+
+}
+strcpy(selected_capteurhist.captIDhist,str_datah);
+
+FILE *f;capterHist h;
+f=fopen("capteurHistorique.bin","rb");
+while(!feof(f))
+	{
+	fread(&h,sizeof(capterHist),1,f);
+	if(strcmp(selected_capteurhist.captIDhist,h.captIDhist)==0){selected_capteurhist=h;}	
+	}
 fclose(f);
-}
-absence=i-tauxpresence;
-tauxabsence=(absence/i)*100;
 
-sprintf(tauxtxt,"%.2f",tauxabsence);
-gtk_label_set_text(GTK_LABEL(ta),"Le taux d`absence est :");
-gtk_label_set_text(GTK_LABEL(pourcent),"%");
-gtk_label_set_text(GTK_LABEL(sortiem),tauxtxt);
-
-return 0;
 }
 
+
+void
+on_CObuttonConfirmModifHist_clicked    (GtkWidget       *objet_graphique,
+                                        gpointer         user_data)
+{
+GtkWidget *id,*jour,*mois,*annee,*val;
+capterHist h;
+capteur C;
+
+id = lookup_widget (objet_graphique,"COentryIDModifHist");
+val = lookup_widget (objet_graphique,"COspinbuttonValModif");
+
+jour = lookup_widget (objet_graphique,"COspinbuttonJourMdif");
+mois = lookup_widget (objet_graphique,"COspinbuttonMoisModif");
+annee = lookup_widget (objet_graphique,"COspinbuttonAnneeModif");
+
+strcpy(h.captIDhist,gtk_entry_get_text(GTK_ENTRY(id)));
+
+
+
+strcpy(h.captMarquehist,C.captMarque);
+
+
+
+h.captValEnr=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(val));
+
+h.date_capteur.j=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(jour));
+
+h.date_capteur.m=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(mois));
+h.date_capteur.a=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(annee));
+
+//modifier_capt(C);
+supprimer_capt_hist(h);
+ajouter_capt_hist(h);
+
+}
+
+
+void
+on_CObuttonRetourModifHist_clicked     (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COwindowModifHist;
+COwindowModifHist=lookup_widget(objet,"COwindowModifHist");
+gtk_widget_destroy(COwindowModifHist);
+}
+
+
+void
+on_CObuttonRetour_clicked              (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COWindowModif;
+COWindowModif=lookup_widget(objet,"COWindowModif");
+gtk_widget_destroy(COWindowModif);
+}
+
+
+void
+on_CObuttonAfficherAlarm_clicked       (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+int jo,mo,an;
+GtkWidget *COwindowAlarmants,*jour,*mois,*annee;
+
+jour = lookup_widget (objet,"spinbutton1");
+mois = lookup_widget (objet,"spinbutton2");
+annee = lookup_widget (objet,"spinbutton3");
+
+jo=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(jour));
+mo=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(mois));
+an=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(annee));
+
+GtkWidget *list1;
+COwindowAlarmants=lookup_widget (objet,"COwindowAlarmants");
+
+list1=lookup_widget (COwindowAlarmants,"list1");
+afficher_captAlarm(jo,mo,an,list1);
+}
+
+
+void
+on_CObuttonAfficherDefec_clicked       (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *COwindowDefec,*hum,*temp;
+capteurDefec d;
+GtkWidget *list2;
+COwindowDefec=lookup_widget (objet,"COwindowDefec");
+
+list2=lookup_widget (COwindowDefec,"list2");
+//marque_defec(d);
+afficher_captdefec(list2);
+
+}
+
+
+void
+on_button29_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *window1;
+window1=lookup_widget(button,"window1");
+gtk_widget_destroy (window1);
+}
+
+
+void
+on_button28_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *window1;
+window1=lookup_widget(button,"window1");
+
+
+supprimer_capt(selected_capteur);
+
+
+
+GtkWidget *tree;
+tree=lookup_widget(window1,"COtreeviewAffichage");
+afficher_capt(tree);
+gtk_widget_destroy (window1);
+}
+
+
+void
+on_button30_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *window2;
+window2=lookup_widget(button,"window2");
+
+
+supprimer_capt_hist(selected_capteurhist);
+
+
+
+GtkWidget *tree;
+tree=lookup_widget(window2,"COtreeviewAffichageHist");
+afficher_capt_hist(tree);
+gtk_widget_destroy (window2);
+}
+
+
+void
+on_button31_clicked                    (GtkButton       *button,
+                                        gpointer         user_data)
+{
+GtkWidget *window2;
+window2=lookup_widget(button,"window2");
+gtk_widget_destroy (window2);
+}
 
