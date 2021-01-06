@@ -25,7 +25,7 @@ void ajouter_employe(employe e)
 {
 FILE *f=NULL;
 f=fopen("employe.bin","a+b");
-if(f!=NULL)
+
 fwrite(&e,sizeof(employe),1,f);
 fclose(f);
 }
@@ -276,7 +276,7 @@ g_object_unref (store);
 }
 
 /////////////////Chercher_type///////////////////
-/*void chercher_type_employe(int s,int n,int p,int z,char k[20], char l[20],GtkWidget *liste)
+void chercher_type_employe(int s,int n,int p,int z,char k[20], char l[20],GtkWidget *liste)
 {
 	GtkCellRenderer *renderer;
 	GtkTreeViewColumn *column;
@@ -550,7 +550,7 @@ gtk_list_store_set(store, &iter, CIN, e.cin, NOM, e.nom, PRENOM, e.prenom, AGE, 
 }
 }
 }
-
+}
 fclose(f);
 gtk_tree_view_set_model(GTK_TREE_VIEW(liste), GTK_TREE_MODEL(store));
 g_object_unref (store);
@@ -558,7 +558,7 @@ g_object_unref (store);
 
 }
 
-*/
+
 
 enum
 {	
@@ -640,7 +640,7 @@ g_object_unref (store);
 
 }
 //////////
-float calcul_absenteisme_emp(employe e)
+/*float calcul_absenteisme_emp(employe e)
 {
 absent a;
 int ab=0,pr=0;
@@ -648,35 +648,33 @@ float c;
 FILE *f=NULL;
 f=fopen("absenteisme.bin","rb");
 if(f!=NULL){
-return;}
-else {
 f=fopen("absenteisme.bin","rb");
-while(fread(&e,sizeof(employe),1,f)!=0){
+while(fread(&e,sizeof(absent),1,f)!=0){
 if (strcmp(e.cin,a.cin)==0){
 if (a.val==0){ab++;}
 else{pr++;}
-
-
 
 }
 }
 }
 fclose(f);
 c=(float)ab/(float)(pr+ab);
+
 return c;
-}
+}*/
 /////////////////
-int exist_employe(char *cin){
+int exist_employe(char cin[8]){
 FILE*f=NULL;
+int i=0;
 employe e;
 f=fopen("employe.bin","rb"); 
 	while(fread(&e,sizeof(employe),1,f)!=0){
 if(strcmp(e.cin,cin)==0)
-return 1;   
-}
-fclose(f);
-return 0;
+i++;   
 }
 
+return i;
+fclose(f);
+}
 
 

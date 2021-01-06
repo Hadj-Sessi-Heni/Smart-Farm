@@ -3,436 +3,615 @@
 #endif
 
 #include <gtk/gtk.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include "callbacks.h"
 #include "interface.h"
 #include "support.h"
-#include "equipement.h"
+#include "fonction_emp.h"
+int x_ch,y_ch,z_ch,a_ch;
+int choix_ch[3]={0,0,0};
+employe active_emp;
+employe act_emp;
+absent ab;
+date d_ch;
 
-Equipement selected_eq;
-GtkTreeSelection *selection1;
+///////
+
 void
-on_Ajouter_clicked                     (GtkButton       *objet,
+on_radiobutton2_femme_ch_toggled       (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
-GtkWidget *ajout;
-GtkWidget *window;
-window= create_Ajout ();
-  gtk_widget_show (window);
-
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{z_ch=2;}
 }
 
 
 void
-on_valider_clicked                     (GtkButton       *objet,
+on_radiobutton1_homme_ch_toggled       (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
-Equipement E;
-GtkWidget *input1, *input2, *input3, *input4, *input5, *input6;
-GtkWidget *fenetre_ajout;
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{z_ch=1;}
+}
+
+
+void
+on_radiobutton1_H_ch_toggled           (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{x_ch=1;}
+}
+
+
+void
+on_radiobutton2_F_ch_toggled           (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{x_ch=2;}
+}
+
+void
+on_radiobutton3_H_ch_toggled           (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{y_ch=1;}
+}
+
+
+void
+on_radiobutton4_F_ch_toggled           (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{y_ch=2;}
+}
+
+
+void
+on_checkbutton1_sexe_ch_clicked        (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix_ch[0]=1;
+GtkWidget *input1,*input2;
+input1=lookup_widget(togglebutton,"radiobutton1_homme_ch");
+input2=lookup_widget(togglebutton,"radiobutton2_femme_ch");
+gtk_widget_show(input1);
+gtk_widget_show(input2);
+}
+}
+
+
+void
+on_checkbutton2_nom_ch_clicked         (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix_ch[1]=1;
+GtkWidget *input1;
+input1=lookup_widget(togglebutton,"entry1_name");
+gtk_widget_show(input1);}
+}
+
+
+void
+on_checkbutton3_prenom_ch_clicked      (GtkToggleButton *togglebutton,
+                                        gpointer         user_data)
+{
+if (gtk_toggle_button_get_active(togglebutton))
+{choix_ch[2]=1;
+GtkWidget *input1;
+input1=lookup_widget(togglebutton,"entry2_prename");
+gtk_widget_show(input1);}
+}
+
+
+
+
+void
+on_treeview2_ab_row_activated          (GtkTreeView     *treeview,
+                                        GtkTreePath     *path,
+                                        GtkTreeViewColumn *column,
+                                        gpointer         user_data)
+{
+
+	GtkTreeIter iter;
+	gchar *str_data;
+	GtkListStore *list_store;
+	list_store=gtk_tree_view_get_model(treeview);
+	if(gtk_tree_model_get_iter(GTK_TREE_MODEL(list_store),&iter,path))
+	{
+	gtk_tree_model_get(GTK_TREE_MODEL(list_store),&iter,0,&str_data,-1);
+	}
+	strcpy(active_emp.cin,str_data);
+	
+	FILE *f;
+	employe e;
+	f=fopen("employe.bin","rb");
+	while(!feof(f))
+	{
+	fread(&e,sizeof(employe),1,f);
+	if(strcmp(act_emp.cin,e.cin)==0)
+	{act_emp=e;}
+	}
+	fclose(f);
+
+}
+
+
+
+
+void
+on_button1_afficher_ch_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *gestion_employe;
 GtkWidget *treeview1;
-
-
-fenetre_ajout=lookup_widget(objet,"dashboard");
-input1=lookup_widget(objet,"Code");
-input2=lookup_widget(objet,"Type");
-input3=lookup_widget(objet,"Marque");
-input4=lookup_widget(objet,"annee");
-input5=lookup_widget(objet,"Matricule");
-input6=lookup_widget(objet,"etat");
-
-
-strcpy(E.Code,gtk_entry_get_text(GTK_ENTRY(input1)));
-strcpy(E.Type,gtk_combo_box_get_active_text(GTK_COMBO_BOX(input2)));
-strcpy(E.Marque,gtk_combo_box_get_active_text(GTK_COMBO_BOX(input3)));
-strcpy(E.annee_dachat,gtk_entry_get_text(GTK_ENTRY(input4)));
-strcpy(E.Matricule,gtk_entry_get_text(GTK_ENTRY(input5)));
-strcpy(E.etat,gtk_combo_box_get_active_text(GTK_COMBO_BOX(input6)));
-ajouter(E);
-GtkWidget *ajout;
-GtkWidget *window;
-window= create_dashboard ();
-  gtk_widget_show (window);
-treeview1=lookup_widget(window,"treeview1");
-
-affiche(treeview1);
+gestion_employe=lookup_widget(objet,"gestion_employe");
+treeview1=lookup_widget(gestion_employe,"treeview1_ch");
+afficher_employe(treeview1);
 }
 
 
-
 void
-on_retour_clicked                      (GtkButton       *objet,
+on_button_supprimer_ch_clicked         (GtkWidget       *objet,
                                         gpointer         user_data)
 {
-GtkWidget *fenetre_ajout, *fenetre_afficher;
-GtkWidget *treeview1;
-fenetre_afficher=lookup_widget(objet,"Ajout");
+GtkWidget *gestion_employe;
+	GtkWidget *treeview;
+	gestion_employe=lookup_widget(objet,"gestion_employe");
+	supprimer_employe(active_emp);
+	treeview=lookup_widget(gestion_employe,"treeview1_ch");
+	afficher_employe(treeview);
+}
 
-gtk_widget_destroy(fenetre_afficher);
-fenetre_ajout=create_dashboard ();
-gtk_widget_show(fenetre_ajout);
-treeview1=lookup_widget(fenetre_ajout,"treeview1");
 
-affiche(treeview1);
+
+
+void
+on_button_modifier_ch_clicked          (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *gestion_employe;
+
+gestion_employe=lookup_widget(objet,"gestion_employe");
+GtkWidget *input1,*input2,*input3,*input5,*input6,*input7,*input8,*input9,*input10,*input11;
+input1=lookup_widget(gestion_employe,"entry7_nom");
+input2=lookup_widget(gestion_employe,"entry8_prenom");
+input3=lookup_widget(gestion_employe,"spinbutton5_age");
+input5=lookup_widget(gestion_employe,"spinbutton6_jour");
+input6=lookup_widget(gestion_employe,"spinbutton7_mois");
+input7=lookup_widget(gestion_employe,"spinbutton8_an");
+input8=lookup_widget(gestion_employe,"entry9_adress");
+input9=lookup_widget(gestion_employe,"entry10_password");
+input10=lookup_widget(gestion_employe,"entry2_mail");
+input11=lookup_widget(gestion_employe,"entry2_tel");
+gtk_entry_set_text(input1,active_emp.nom);
+gtk_entry_set_text(input2,active_emp.prenom);
+gtk_entry_set_text(input8,active_emp.adress);
+gtk_entry_set_text(input9,active_emp.password);
+gtk_entry_set_text(input10,active_emp.mail);
+gtk_entry_set_text(input11,active_emp.tel);
+gtk_spin_button_set_value(input3,active_emp.age);
+gtk_spin_button_set_value(input5,active_emp.date_amb.jour);
+gtk_spin_button_set_value(input6,active_emp.date_amb.mois);
+gtk_spin_button_set_value(input7,active_emp.date_amb.annee);
+gtk_notebook_set_current_page(GTK_NOTEBOOK(lookup_widget(gestion_employe,"notebook2_ch")),3);
+
 }
 
 
 void
-on_treeview1_row_activated             (GtkTreeView     *treeview,
+on_button1_checher1_ch_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+char type[30];
+char cin[8];
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+GtkWidget *input1,*input2,*input4,*input3,*input5,*input6,*input7,*input8,*input10,*input11;
+input1=lookup_widget(gestion_employe,"label45");
+input2=lookup_widget(gestion_employe,"entry1_cin");
+input3=lookup_widget(gestion_employe,"checkbutton1_sexe_ch");
+input4=lookup_widget(gestion_employe,"checkbutton2_nom_ch");
+input5=lookup_widget(gestion_employe,"checkbutton3_prenom_ch");
+input6=lookup_widget(gestion_employe,"radiobutton1_homme_ch");
+input7=lookup_widget(gestion_employe,"radiobutton2_femme_ch");
+input8=lookup_widget(gestion_employe,"comboboxentry1");
+input10=lookup_widget(gestion_employe,"entry1_name");
+input11=lookup_widget(gestion_employe,"entry2_prename");
+gtk_widget_hide(input1);
+gtk_widget_hide(input2);
+gtk_widget_hide(input3);
+gtk_widget_hide(input4);
+gtk_widget_hide(input5);
+gtk_widget_hide(input6);
+gtk_widget_hide(input7);
+gtk_widget_hide(input10);
+gtk_widget_hide(input11);
+gtk_notebook_set_current_page(GTK_NOTEBOOK(lookup_widget(gestion_employe,"notebook2_ch")),2);
+}
+
+
+
+
+
+
+void
+on_button4_chercher_ch_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+char cin[8];
+char nom[20], prenom[20];
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+GtkWidget *treeview1;
+treeview1=lookup_widget(gestion_employe,"treeview1_ch");
+GtkWidget *input1,*input2,*input4,*input3,*input5,*input6,*input7,*input8,*input10,*input11;
+input1=lookup_widget(gestion_employe,"label45");
+input2=lookup_widget(gestion_employe,"entry1_cin");
+input3=lookup_widget(gestion_employe,"checkbutton1_sexe_ch");
+input4=lookup_widget(gestion_employe,"checkbutton2_nom_ch");
+input5=lookup_widget(gestion_employe,"checkbutton3_prenom_ch");
+input6=lookup_widget(gestion_employe,"radiobutton1_homme_ch");
+input7=lookup_widget(gestion_employe,"radiobutton2_femme_ch");
+input8=lookup_widget(gestion_employe,"comboboxentry1");
+input10=lookup_widget(gestion_employe,"entry1_name");
+input11=lookup_widget(gestion_employe,"entry2_prename");
+if (strcmp("recherche_simple",gtk_combo_box_get_active_text(GTK_COMBO_BOX(input8)))==0){
+strcpy(cin,gtk_entry_get_text(GTK_ENTRY(input2)));
+chercher_employe(cin,treeview1);}
+else if(strcmp("recherche_multi-critère",gtk_combo_box_get_active_text(GTK_COMBO_BOX(input8)))==0){
+strcpy(nom,gtk_entry_get_text(GTK_ENTRY(input10)));
+strcpy(prenom,gtk_entry_get_text(GTK_ENTRY(input11)));
+chercher_type_employe(choix_ch[0],choix_ch[1],choix_ch[2],z_ch,nom,prenom,treeview1);
+}
+
+
+
+gtk_notebook_set_current_page(GTK_NOTEBOOK(lookup_widget(gestion_employe,"notebook2_ch")),0);
+}
+
+
+
+
+void
+on_button5_modifier_ch_clicked         (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+employe e;
+GtkWidget *input1,*input2,*input3,*input5,*input6,*input7,*input8,*input9,*input10,*input11;
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+input1=lookup_widget(gestion_employe,"entry7_nom");
+input2=lookup_widget(gestion_employe,"entry8_prenom");
+input3=lookup_widget(gestion_employe,"spinbutton5_age");
+input5=lookup_widget(gestion_employe,"spinbutton6_jour");
+input6=lookup_widget(gestion_employe,"spinbutton7_mois");
+input7=lookup_widget(gestion_employe,"spinbutton8_an");
+input8=lookup_widget(gestion_employe,"entry9_adress");
+input9=lookup_widget(gestion_employe,"entry10_password");
+input10=lookup_widget(gestion_employe,"entry2_mail");
+input11=lookup_widget(gestion_employe,"entry2_tel");
+strcpy(e.nom,gtk_entry_get_text(GTK_ENTRY(input1)));
+strcpy(e.prenom,gtk_entry_get_text(GTK_ENTRY(input2)));
+e.age=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input3));
+//strcpy(e.cin,gtk_entry_get_text(GTK_ENTRY(input4)));
+if(y_ch==1)
+strcpy(e.sexe,"Homme");
+else if(y_ch==2)
+strcpy(e.sexe,"Femme");
+e.date_amb.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input5));
+e.date_amb.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input6));
+e.date_amb.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input7));
+strcpy(e.adress,gtk_entry_get_text(GTK_ENTRY(input8)));
+strcpy(e.password,gtk_entry_get_text(GTK_ENTRY(input9)));
+strcpy(e.mail,gtk_entry_get_text(GTK_ENTRY(input10)));
+strcpy(e.tel,gtk_entry_get_text(GTK_ENTRY(input11)));
+strcpy(e.cin,active_emp.cin);
+/*supprimer_employe(active_emp);
+ajouter_employe(e);*/
+modifier_employe(e);
+}
+
+
+void
+on_treeview1_ch_row_activated          (GtkTreeView     *treeview,
                                         GtkTreePath     *path,
                                         GtkTreeViewColumn *column,
                                         gpointer         user_data)
 {
 GtkTreeIter iter;
-	gchar* Code;
-	gchar* Type;
-	gchar* Marque;
-	gchar* annee_dachat;
-	gchar* Matricule;
-	gchar* etat;
-	Equipement p;
-
-	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
-
-	if(gtk_tree_model_get_iter(model,&iter,path))
+	gchar *str_data;
+	GtkListStore *list_store;
+	list_store=gtk_tree_view_get_model(treeview);
+	if(gtk_tree_model_get_iter(GTK_TREE_MODEL(list_store),&iter,path))
 	{
-	gtk_tree_model_get (GTK_LIST_STORE(model), &iter,0, &Code,1,&Type,2,&Marque,3,&annee_dachat,4,&Matricule,5,&etat,-1);
-	strcpy(p.Code,Code);
-	strcpy(p.Type,Type);
-	strcpy(p.Marque,Marque);
-	strcpy(p.annee_dachat,annee_dachat);
-	strcpy(p.Matricule,Matricule);
- 	strcpy(p.etat,etat);
-	
+	gtk_tree_model_get(GTK_TREE_MODEL(list_store),&iter,0,&str_data,-1);
 	}
-selected_eq=p;
-GtkWidget *dashboard;
-dashboard=create_dashboard ();
- GtkWidget *E=lookup_widget(dashboard,"treeview1");
-
- selection1 = gtk_tree_view_get_selection(GTK_TREE_VIEW(E));
-}
-
-
-
-
-
-/*void
-on_Afficher_clicked                    (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-GtkWidget *fenetre_ajout;
-GtkWidget *fenetre_afficher;
-GtkWidget *treeview1;
-fenetre_ajout=lookup_widget(objet,"ajout");
-
-gtk_widget_destroy(fenetre_ajout);
-fenetre_afficher=lookup_widget(objet,"dashboard");
-fenetre_afficher=create_dashboard ();
-
-gtk_widget_show(fenetre_afficher);
-
-treeview1=lookup_widget(fenetre_afficher,"treeview1");
-
-affiche(treeview1);
-}*/
-
-
-
-void
-on_rechercher_clicked                  (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-char ref[30];
-GtkWidget *dialog;
-GtkWidget *input;
-GtkWidget *treeview1;
-input=lookup_widget(objet,"id");
-strcpy(ref,gtk_entry_get_text(GTK_ENTRY(input)));
-
-dialog=lookup_widget (objet,"dashboard");
-treeview1=lookup_widget (objet,"treeview1");
-rechercher(ref,treeview1);
-}
-
-
-void
-on_actualiser_clicked                  (GtkButton       *objet,
-                                        gpointer         user_data)
-{GtkWidget *fenetre_ajout;
-GtkWidget *fenetre_afficher;
-GtkWidget *treeview1;
-fenetre_ajout=lookup_widget(objet,"dashboard");
-fenetre_afficher=lookup_widget(objet,"dashboard");
-gtk_widget_destroy(fenetre_ajout);
-fenetre_afficher=create_dashboard ();
-gtk_widget_show(fenetre_afficher);
-treeview1=lookup_widget(fenetre_afficher,"treeview1");
-
-affiche(treeview1);
-}
-
-
-void
-on_supprimer_clicked                   (GtkButton       *objet,
-                                        gpointer         user_data)
-
-{
-GtkWidget *fenetre_ajout;
-GtkWidget *dial;
-GtkWidget *treeview1;
-fenetre_ajout=lookup_widget(objet,"dashboard");
-dial=lookup_widget(objet,"dialog1");
-gtk_widget_destroy(fenetre_ajout);
-dial=create_dialog1 ();
-gtk_widget_show(dial);
-
-}
-
-
-
-void
-on_cancel_clicked                      (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-GtkWidget *fenetre_ajout;
-GtkWidget *dial;
-GtkWidget *treeview1;
-fenetre_ajout=lookup_widget(objet,"dashboard");
-dial=lookup_widget(objet,"dialog1");
-gtk_widget_destroy(dial);
-fenetre_ajout=create_dashboard ();
-gtk_widget_show(fenetre_ajout);
-}
-
-
-void
-on_ok_clicked                          (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-GtkWidget *fa;
-GtkWidget *window;
-GtkWidget *dial;
-fa=lookup_widget(objet,"dashboard");
-
-supprimer(selected_eq);
-GtkWidget *tree;
-dial=lookup_widget(objet,"dialog1");
-gtk_widget_destroy(dial);
-window= create_dashboard ();
-  gtk_widget_show (window);
-
-tree=lookup_widget(objet,"treeview1");
-affiche(tree);
-
-}
-
-
-void
-on_confirmer_Modif_clicked             (GtkButton       *objet,
-                                        gpointer         user_data)
-{
- GtkWidget *tree ,*combobox1;
-GtkWidget *dashboard;
-dashboard=lookup_widget(objet,"dashboard");
-tree=lookup_widget(objet,"treeview1");
-combobox1=lookup_widget(dashboard,"combobox1");
-	Equipement t;
-
-        strcpy(t.Code,gtk_label_get_text(GTK_LABEL(lookup_widget(dashboard,"lab_Code"))));
-        strcpy(t.Type,gtk_label_get_text(GTK_LABEL(lookup_widget(dashboard,"lab_Type"))));
-        strcpy(t.Marque,gtk_label_get_text(GTK_LABEL(lookup_widget(dashboard,"lab_Marque"))));
-        strcpy(t.Matricule,gtk_label_get_text(GTK_LABEL(lookup_widget(dashboard,"lab_Matricule"))));
-
-      strcpy(t.annee_dachat,gtk_label_get_text(GTK_LABEL(lookup_widget(dashboard,"lab_Annee"))));
-
-  supprimer(t);
-	strcpy(t.etat,gtk_combo_box_get_active_text(GTK_COMBO_BOX(combobox1)));
-       
+	strcpy(active_emp.cin,str_data);
 	
-	ajouter(t);
-  gtk_notebook_prev_page(GTK_NOTEBOOK(lookup_widget(dashboard,"notebook1")));
- affiche(lookup_widget(dashboard,"treeview1"));
-	
-        GtkWidget *p=lookup_widget(dashboard,"treeview1");
-        affiche(p);
-
+	FILE *f;
+	employe e;
+	f=fopen("employe.bin","rb");
+	while(!feof(f))
+	{
+	fread(&e,sizeof(employe),1,f);
+	if(strcmp(active_emp.cin,e.cin)==0)
+	{active_emp=e;}
+	}
+	fclose(f);
 }
 
 
 
 void
-on_modifier_clicked                    (GtkButton       *objet,
+on_button1_ch_clicked                  (GtkWidget       *objet,
                                         gpointer         user_data)
 {
-	 gchar* Code;
-	gchar* Type;
-	gchar* Marque;
-	gchar* annee_dachat;
-	gchar* Matricule;
-	gchar* etat;
-	Equipement p;
-GtkWidget *dashboard;
-dashboard=lookup_widget(objet,"dashboard");
-  
-       /* GtkTreeModel     *model;
-        GtkTreeIter iter;
-        if (gtk_tree_selection_get_selected(selection1, &model, &iter))
+char type[30];
+char cin[8];
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+GtkWidget *input1,*input2,*input4,*input3,*input5,*input6,*input7,*input8,*input10,*input11;
+input1=lookup_widget(gestion_employe,"label45");
+input2=lookup_widget(gestion_employe,"entry1_cin");
+input3=lookup_widget(gestion_employe,"checkbutton1_sexe_ch");
+input4=lookup_widget(gestion_employe,"checkbutton2_nom_ch");
+input5=lookup_widget(gestion_employe,"checkbutton3_prenom_ch");
+input6=lookup_widget(gestion_employe,"radiobutton1_homme_ch");
+input7=lookup_widget(gestion_employe,"radiobutton2_femme_ch");
+input8=lookup_widget(gestion_employe,"comboboxentry1");
+input10=lookup_widget(gestion_employe,"entry1_name");
+input11=lookup_widget(gestion_employe,"entry2_prename");
+if (strcmp("recherche_simple",gtk_combo_box_get_active_text(GTK_COMBO_BOX(input8)))==0){
+gtk_widget_show(input1);
+gtk_widget_show(input2);
+
+strcpy(type,"recherche_simple");
+
+}
+else if(strcmp("recherche_multi-critère",gtk_combo_box_get_active_text(GTK_COMBO_BOX(input8)))==0){
+gtk_widget_show(input3);
+gtk_widget_show(input4);
+gtk_widget_show(input5);
+strcpy(type,"recherche_multi-critère");
+
+}
+}
+
+
+void
+on_button1_ajouter_ch_clicked          (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+employe e;
+GtkWidget *input1,*input2,*input3,*input4,*input5,*input6,*input7,*input8,*input9,*input10,*input11;
+GtkWidget *gestion_employe;
+GtkWidget *exist,*success;
+int b=1;
+GtkWidget *lab_nom,*lab_pre,*lab_cin,*lab_tel,*lab_mail,*lab_ad,*lab_pass;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+input1=lookup_widget(gestion_employe,"entry1_nom");
+input2=lookup_widget(gestion_employe,"entry2_prenom");
+input3=lookup_widget(gestion_employe,"spinbutton1_age");
+input4=lookup_widget(gestion_employe,"entry5_cin");
+input5=lookup_widget(gestion_employe,"spinbutton2_jour");
+input6=lookup_widget(gestion_employe,"spinbutton3_mois");
+input7=lookup_widget(gestion_employe,"spinbutton4_an");
+input8=lookup_widget(gestion_employe,"entry3_adress");
+input9=lookup_widget(gestion_employe,"entry4_password");
+input10=lookup_widget(gestion_employe,"entry1_mail");
+input11=lookup_widget(gestion_employe,"entry1_tel");
+exist=lookup_widget(gestion_employe,"label52");
+success=lookup_widget(gestion_employe,"label53");
+
+lab_nom=lookup_widget(gestion_employe,"label54");
+lab_pre=lookup_widget(gestion_employe,"label58");
+lab_cin=lookup_widget(gestion_employe,"label59");
+lab_tel=lookup_widget(gestion_employe,"label55");
+lab_mail=lookup_widget(gestion_employe,"label60");
+lab_pass=lookup_widget(gestion_employe,"label56");
+lab_ad=lookup_widget(gestion_employe,"label57");
+
+
+gtk_widget_hide(exist);
+gtk_widget_hide(success);
+
+strcpy(e.nom,gtk_entry_get_text(GTK_ENTRY(input1)));
+strcpy(e.prenom,gtk_entry_get_text(GTK_ENTRY(input2)));
+e.age=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input3));
+strcpy(e.cin,gtk_entry_get_text(GTK_ENTRY(input4)));
+if(x_ch==1)
+strcpy(e.sexe,"homme");
+else if(x_ch==2)
+strcpy(e.sexe,"femme");
+e.date_amb.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input5));
+e.date_amb.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input6));
+e.date_amb.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input7));
+strcpy(e.adress,gtk_entry_get_text(GTK_ENTRY(input8)));
+strcpy(e.password,gtk_entry_get_text(GTK_ENTRY(input9)));
+strcpy(e.mail,gtk_entry_get_text(GTK_ENTRY(input10)));
+strcpy(e.tel,gtk_entry_get_text(GTK_ENTRY(input11)));
+
+
+if(strcmp(e.nom,"")==0){
+		  gtk_widget_show (lab_nom);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_nom);
+}
+if(strcmp(e.prenom,"")==0){
+		  gtk_widget_show (lab_pre);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_pre);
+}
+if(strcmp(e.cin,"")==0){
+		  gtk_widget_show (lab_cin);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_cin);
+}
+if(strcmp(e.tel,"")==0){
+		  gtk_widget_show (lab_tel);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_tel);
+}
+if(strcmp(e.mail,"")==0){
+		  gtk_widget_show (lab_mail);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_mail);
+}
+if(strcmp(e.password,"")==0){
+		  gtk_widget_show (lab_pass);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_pass);
+}
+if(strcmp(e.adress,"")==0){
+		  gtk_widget_show (lab_ad);
+b=0;
+}
+else {
+		  gtk_widget_hide(lab_ad);
+}
+if(b==1){
+
+        if(exist_employe(e.cin)==1)
         {
 
-       
-               gtk_tree_model_get (model, &iter,0, &Code,1,&Type,2,&Marque,3,&annee_dachat,4,&Matricule,5,&etat,-1);//recuperer les information de la ligne selectionneé
-        // //remplir les champs de entry*/
-                gtk_label_set_text(GTK_LABEL(lookup_widget(dashboard,"lab_Code")),selected_eq.Code);
-                gtk_label_set_text(GTK_LABEL(lookup_widget(dashboard,"lab_Type")),selected_eq.Type);
-                gtk_label_set_text(GTK_LABEL(lookup_widget(dashboard,"lab_Marque")),selected_eq.Marque);
-                gtk_label_set_text(GTK_LABEL(lookup_widget(dashboard,"lab_Annee")),selected_eq.annee_dachat);
-gtk_label_set_text(GTK_LABEL(lookup_widget(dashboard,"lab_Matricule")),selected_eq.Matricule);
+				  gtk_widget_show(exist);
+        }
+        else {
+						  gtk_widget_hide(exist);
+                ajouter_employe(e);
 
-
-           
-                gtk_notebook_next_page(GTK_NOTEBOOK(lookup_widget(dashboard,"notebook1")));//redirection vers la page precedente*/
+						  gtk_widget_show(success);
+        
 }
-
-
-
-void
-on_betat_acct_clicked                  (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-	 gchar* Code;
-	gchar* Type;
-	
-	Equipement p;
-GtkWidget *change;
-//change=lookup_widget(objet,"chang_etat");
-change= create_chang_etat ();
-GtkWidget *dashboard;
-dashboard=lookup_widget(objet,"dashboard");
-  
-   gtk_widget_hide(dashboard);
-gtk_widget_show(change);
-                gtk_label_set_text(GTK_LABEL(lookup_widget(change,"labe_Code")),selected_eq.Code);
-                gtk_label_set_text(GTK_LABEL(lookup_widget(change,"labe_Type")),selected_eq.Type);
-
-
+}
 }
 
 
 void
-on_conf_etat_clicked                   (GtkButton       *objet_graphique,
+on_radiobutton1_ch_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
-GtkWidget *change;
-change=lookup_widget(objet_graphique,"chang_etat");
-GtkWidget *input1,*input2,*input6;
-GtkWidget *jour;
-GtkWidget *mois;
-GtkWidget *annee;
-char etat_util[10];
-char Code[10];
-char Type[15];
-date dt_uti;
-input1=lookup_widget(objet_graphique,"labe_Code");
-input2=lookup_widget(objet_graphique,"labe_Type");
-input6=lookup_widget(objet_graphique,"combobox2");
-jour=lookup_widget(objet_graphique, "sjour");
-mois=lookup_widget(objet_graphique, "smoin");
-annee=lookup_widget(objet_graphique, "sannee");
-dt_uti.jour=gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (jour));
-dt_uti.mois=gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (mois));
-dt_uti.annee=gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (annee));
-strcpy(etat_util,gtk_combo_box_get_active_text(GTK_COMBO_BOX(input6)));
- strcpy(Code,gtk_label_get_text(GTK_LABEL(input1)));
-        strcpy(Type,gtk_label_get_text(GTK_LABEL(input2)));
-ajout_util(dt_uti,etat_util,Code,Type);
-
-//change=lookup_widget(objet,"chang_etat");
-GtkWidget *dashboard;
-dashboard= create_dashboard ();
-
-change=lookup_widget(objet_graphique,"chang_etat");
-  
-   gtk_widget_hide(change);
-gtk_widget_show(dashboard);
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{a_ch=1;}
 }
 
 
 void
-on_back_clicked                        (GtkButton       *objet,
+on_button3_apply_ch_clicked            (GtkWidget       *objet,
                                         gpointer         user_data)
 {
-GtkWidget *fenetre_ajout, *fenetre_afficher;
+GtkWidget *input1,*input2,*input3;
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+input1=lookup_widget(gestion_employe,"spinbutton1_j");
+input2=lookup_widget(gestion_employe,"spinbutton2_m");
+input2=lookup_widget(gestion_employe,"spinbutton3_a");
+d_ch.jour=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input1));
+d_ch.mois=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input2));
+d_ch.annee=gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(input3));
 GtkWidget *treeview1;
-fenetre_afficher=lookup_widget(objet,"chang_etat");
-
-gtk_widget_destroy(fenetre_afficher);
-fenetre_ajout=create_dashboard ();
-gtk_widget_show(fenetre_ajout);
-}
-
-
-void
-on_eq_uti_clicked                      (GtkButton       *objet,
-                                        gpointer         user_data)
-{
-int res;
-//GtkWidget *fenetre_ajout;
-GtkWidget *dial;
-GtkWidget *treeview2;
-
-
-//dial=lookup_widget(objet,"eq_plus_util");
-//treeview2=lookup_widget(objet,"treeview2");
-//dial=lookup_widget(objet,"eq_plus_util");
-//gtk_widget_destroy(fenetre_ajout);
-dial=create_eq_plus_util ();
-gtk_widget_show(dial);
-equip();
-treeview2=lookup_widget(dial,"treeview2");
-//affiche_u(treeview2);
-// gtk_label_set_text(GTK_LABEL(lookup_widget(objet,"type")),res);
-
-/*char rct;
-char ch[50];
-rct=equi();
-GtkWidget *dash=lookup_widget(objet,"dashboard");
-GtkWidget *msg=lookup_widget(objet,"labres");
-sprintf(ch,"l'équipement le plu utilisé : %s",rct);
-gtk_label_set_text(GTK_LABEL(msg),ch);*/
+treeview1=lookup_widget(gestion_employe,"treeview2_ab");
+afficher_employe_ab(treeview1);
 
 }
 
 
 void
-on_treeview2_row_activated             (GtkTreeView     *treeview,
-                                        GtkTreePath     *path,
-                                        GtkTreeViewColumn *column,
+on_radiobutton2_ch_toggled             (GtkToggleButton *togglebutton,
                                         gpointer         user_data)
 {
+if(gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(togglebutton)))
+{a_ch=0;}
+}
 
-GtkTreeIter iter;
-	gchar* Code;
-	gchar* Type;
-	gint* nb;
-	verif p;
 
-	GtkTreeModel *model = gtk_tree_view_get_model(treeview);
+void
+on_button2_valider_ch_clicked          (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+GtkWidget *gestion_employe,*test;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+test=lookup_widget(gestion_employe,"label61");
 
-	if(gtk_tree_model_get_iter(model,&iter,path))
-	{
-	gtk_tree_model_get (GTK_LIST_STORE(model), &iter,0, &Code,1,&Type,2,&nb,-1);
-	strcpy(p.id,Code);
-	strcpy(p.type,Type);
-	strcpy(p.nb,nb);
-	
-	
-	}
+absent em_ab,a;
+int x=0;
+strcpy(em_ab.cin,act_emp.cin);
+em_ab.date=d_ch;
+em_ab.val=a_ch;
+FILE *g=NULL;
+g=fopen("absenteisme.bin","rb"); 
+if(g!=NULL){
+	while(fread(&a,sizeof(absent),1,g)!=0){
+if((strcmp(em_ab.cin,a.cin)==0)&&(a.date.jour==em_ab.date.jour)&&(a.date.mois==em_ab.date.mois)&&(a.date.annee==em_ab.date.annee))
+x=1;   
+}
+}
+fclose(g);
+if (x==1){ gtk_widget_show(test);}
+else {
+gtk_widget_hide(test);
+FILE *f=NULL;
+f=fopen("absenteisme.bin","a+b");
+if(f!=NULL)
+fwrite(&em_ab,sizeof(absent),1,f);
+fclose(f);}
+}
 
-GtkWidget *dashboard;
-dashboard=create_eq_plus_util ();
- GtkWidget *E=lookup_widget(dashboard,"treeview2");
 
+void
+on_button4_ch_clicked                  (GtkWidget       *objet,
+                                        gpointer         user_data)
+{
+float i=0;
+char c[20]="";
+GtkWidget *gestion_employe;
+gestion_employe=lookup_widget(objet,"gestion_employe");
+//i=calcul_absenteisme_emp(act_emp);
+
+absent abs;
+int ab=0,pr=0;
+FILE *f=NULL;
+f=fopen("absenteisme.bin","rb");
+if(f!=NULL){
+f=fopen("absenteisme.bin","rb");
+while(fread(&abs,sizeof(absent),1,f)!=0){
+if (strcmp(act_emp.cin,abs.cin)==0){
+if (abs.val==0){ab++;}
+else{pr++;}
+
+}
+}
+}
+fclose(f);
+i=(float)ab/(float)(pr+ab);
+i=i*100;
+
+
+GtkWidget *input1;
+input1=lookup_widget(gestion_employe,"label51_ab");
+sprintf(c,"%f %%",i);
+gtk_label_set_text(GTK_LABEL(input1),c);
+gtk_widget_show(input1);
 }
 
 
